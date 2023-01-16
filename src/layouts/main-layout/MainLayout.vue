@@ -30,6 +30,7 @@
   <KTDrawers />
   <KTScrollTop />
   <KTModals />
+  <notifications position="bottom right" />
 </template>
 
 <script lang="ts">

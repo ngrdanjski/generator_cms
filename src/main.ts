@@ -3,6 +3,7 @@ import { createPinia } from "pinia";
 import { Tooltip } from "bootstrap";
 import App from "./App.vue";
 import { format } from "date-fns";
+import Notifications from '@kyvg/vue3-notification'
 
 /*
 TIP: To get started with clean router change path to @/router/clean.ts.
@@ -23,6 +24,7 @@ const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 app.use(ElementPlus);
+app.use(Notifications)
 
 ApiService.init(app);
 initApexCharts(app);
