@@ -1,7 +1,6 @@
 <template>
   <div>
     <div class="card card-flush">
-      <button @click="toggleModal">Toogle modal</button>
       <!--begin::Card header-->
       <div class="card-header pt-8">
         <div class="card-title">
@@ -37,7 +36,9 @@
               type="text"
               data-kt-filemanager-table-filter="search"
               class="form-control form-control-solid w-250px ps-15"
-              placeholder="Search Files &amp; Folders"
+              placeholder="Search Files"
+              @keyup="searchMedia('name')"
+              v-model="searchTerm"
             />
           </div>
           <!--end::Search-->
@@ -226,7 +227,7 @@
                     colspan="1"
                     style="width: 334.297px"
                   >
-                    Last Modified
+                    Created At
                   </th>
                   <th
                     class="w-125px sorting_disabled"
@@ -290,7 +291,7 @@
                   <!--end::Size-->
                   <!--begin::Last modified-->
                   <td :data-order="file.updatedAt">
-                    {{ $filters.formatDateTime(file.updatedAt) }}
+                    {{ $filters.formatDateTime(file.createdAt) }}
                   </td>
                   <!--end::Last modified-->
                   <!--begin::Actions-->
@@ -705,12 +706,13 @@ export default defineComponent({
         caption: null,
         description: null,
       },
-      showDropDown: false,
-      dropDownCss: "display: block; position: absolute; right: 0px;",
+      timeout: 0,
+      debounceMilliseconds: 250,
+      searchTerm: null,
     };
   },
   mounted() {
-    ApiService.get("/media", "?order[updatedAt]=ASC").then(({ data }) => {
+    ApiService.get("/media", "?order[createdAt]=DESC").then(({ data }) => {
       this.totalItems = data["hydra:totalItems"];
       this.files = data["hydra:member"];
       this.isFilesLoaded = true;
@@ -793,8 +795,23 @@ export default defineComponent({
         description: payload.description,
       });
     },
-    toggleFileDropdown(payload) {
-      this.showDropDown = true;
+    searchMedia(type) {
+      clearTimeout(this.timeout);
+      this.isFilesLoaded = false;
+      this.timeout = setTimeout(() => {
+        if (type === "name") {
+          const productsPromise = ApiService.get(
+            "/media",
+            `?fileName=${this.searchTerm}`
+          );
+
+          Promise.all([productsPromise]).then((values) => {
+            this.totalItems = values[0].data["hydra:totalItems"];
+            this.files = values[0].data["hydra:member"];
+            this.isFilesLoaded = true;
+          });
+        }
+      }, this.debounceMilliseconds);
     },
   },
 });
